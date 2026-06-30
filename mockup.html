@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maleq Cuisine - Bahau</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: '#DE4F02',      /* Deep Orange */
+                        secondary: '#F57600',  /* Orange */
+                        accent: '#FF9633',     /* Light Orange */
+                        sunny: '#FEEC48',      /* Yellow */
+                        pale: '#FEE77A',       /* Light Yellow */
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        [x-cloak] { display: none !important; }
+        .hero-pattern {
+            background-color: #DE4F02;
+            background-image: url("https://www.transparenttextures.com/patterns/cubes.png");
+        }
+        .step-active { border-color: #DE4F02; color: #DE4F02; }
+        .step-inactive { border-color: #e5e7eb; color: #9ca3af; }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-900" x-data="maleqApp()">
+
+    <header class="bg-white shadow-sm sticky top-0 z-50">
+        <div class="container mx-auto px-8 py-4 flex justify-between items-center">
+            <div class="flex items-center space-x-12">
+                <h1 class="text-2xl font-black text-brand tracking-tighter cursor-pointer" @click="view = 'home'">
+                    MALEQ CUISINE<span class="text-sunny">.</span>
+                </h1>
+                <nav class="hidden lg:flex space-x-8 font-bold text-gray-600">
+                    <button @click="view = 'home'" :class="view === 'home' ? 'text-brand' : ''" class="hover:text-brand">Home</button>
+                    <button @click="view = 'menu-view'" :class="view === 'menu-view' ? 'text-brand' : ''" class="hover:text-brand">Menu</button>
+                    <button @click="view = 'tracking'" :class="view === 'tracking' ? 'text-brand' : ''" class="hover:text-brand">Track Order</button>
+                    <button @click="view = 'about'" :class="view === 'about' ? 'text-brand' : ''" class="hover:text-brand">About</button>
+                </nav>
+            </div>
+            <div class="flex items-center space-x-6">
+                <button @click="startOrder()" class="bg-brand text-white px-6 py-2 rounded-full font-black hover:bg-secondary transition shadow-md">
+                    ORDER NOW
+                </button>
+                <button @click="isAdmin = !isAdmin" class="text-[10px] text-gray-300">Admin Portal</button>
+            </div>
+        </div>
+    </header>
+
+    <main x-show="!isAdmin" class="min-h-screen">
+        
+        <section x-show="view === 'home'" class="container mx-auto px-8 py-12">
+            <div class="hero-pattern rounded-3xl p-16 text-white flex items-center justify-between shadow-2xl relative overflow-hidden">
+                <div class="relative z-10 max-w-2xl">
+                    <span class="bg-sunny text-brand px-4 py-1 rounded-full font-black text-sm uppercase">The Heart of Bahau</span>
+                    <h2 class="text-6xl font-black mt-6 mb-4">Savor the Heat,<br>Love the Flavor.</h2>
+                    <p class="text-xl opacity-90 mb-10">Premium hot food prepared with passion. Whether you're dining in at Jalan Utama or ordering to your doorstep, we bring the heat to you.</p>
+                    <button @click="startOrder()" class="bg-white text-brand px-10 py-4 rounded-xl font-black text-xl hover:scale-105 transition shadow-lg">START YOUR ORDER</button>
+                </div>
+            </div>
+        </section>
+
+        <section x-show="view === 'menu-view'" class="container mx-auto px-8 py-12">
+            <div class="text-center mb-12">
+                <h2 class="text-4xl font-black">Our Signature Menu</h2>
+                <p class="text-gray-500 mt-2">Browse our curated selection of hot meals. Choose an order mode to add to cart.</p>
+            </div>
+            <div class="grid grid-cols-4 gap-8">
+                <template x-for="item in menuItems">
+                    <div class="bg-white rounded-2xl overflow-hidden shadow-sm border" :class="!item.available ? 'opacity-40 grayscale' : ''">
+                        <div class="h-48 bg-gray-100 flex items-center justify-center text-5xl" x-text="item.icon"></div>
+                        <div class="p-6">
+                            <h3 class="text-lg font-bold" x-text="item.name"></h3>
+                            <div class="flex justify-between items-center mt-2">
+                                <span class="text-brand font-black" x-text="'RM ' + item.price.toFixed(2)"></span>
+                                <span x-show="!item.available" class="text-[10px] font-bold text-red-600 bg-red-50 px-2 py-0.5 rounded">OUT OF STOCK</span>
+                            </div>
+                        </div>
+                    </div>
+                </template>
+            </div>
+        </section>
+
+        <section x-show="view === 'order-setup'" class="container mx-auto px-8 py-20 max-w-5xl">
+            <h2 class="text-3xl font-black text-center mb-10 text-brand">Select Order Mode</h2>
+            <div class="grid grid-cols-3 gap-8">
+                <button @click="setupOrder('Delivery')" class="p-10 border-4 border-gray-100 rounded-3xl hover:border-brand transition text-center group bg-white shadow-sm">
+                    <span class="text-5xl block mb-4">🚚</span>
+                    <span class="text-2xl font-black group-hover:text-brand">Delivery</span>
+                </button>
+                <button @click="setupOrder('Pickup')" class="p-10 border-4 border-gray-100 rounded-3xl hover:border-brand transition text-center group bg-white shadow-sm">
+                    <span class="text-5xl block mb-4">🥡</span>
+                    <span class="text-2xl font-black group-hover:text-brand">Pickup</span>
+                </button>
+                <button @click="setupOrder('Dine-in')" class="p-10 border-4 border-gray-100 rounded-3xl hover:border-brand transition text-center group bg-white shadow-sm">
+                    <span class="text-5xl block mb-4">🍽️</span>
+                    <span class="text-2xl font-black group-hover:text-brand">Dine-in</span>
+                </button>
+            </div>
+        </section>
+
+        <section x-show="view === 'order-details'" class="container mx-auto px-8 py-20 max-w-2xl text-center">
+            
+            <template x-if="orderType === 'Delivery'">
+                <div class="space-y-6">
+                    <h2 class="text-2xl font-black">Choose Delivery Session</h2>
+                    <button @click="finishDetails('Morning (11:30-1)')" class="w-full p-6 border-2 rounded-2xl flex justify-between items-center hover:bg-pale bg-white">
+                        <span class="font-bold">Morning Session (11:30 AM - 1:00 PM)</span>
+                        <span class="text-sm font-bold bg-green-100 text-green-700 px-3 py-1 rounded-full">Available</span>
+                    </button>
+                    <button class="w-full p-6 border-2 rounded-2xl flex justify-between items-center opacity-50 cursor-not-allowed bg-gray-50">
+                        <span class="font-bold">Evening Session (2:00 PM - 4:00 PM)</span>
+                        <span class="text-sm font-bold bg-gray-200 text-gray-500 px-3 py-1 rounded-full">FULL</span>
+                    </button>
+                </div>
+            </template>
+
+            <template x-if="orderType === 'Pickup'">
+                <div class="space-y-6">
+                    <h2 class="text-2xl font-black">Select Pickup Location</h2>
+                    <button @click="finishDetails('Restaurant 1')" class="w-full p-6 border-2 rounded-2xl hover:bg-pale text-left bg-white shadow-sm">
+                        <p class="font-bold">Maleq Cuisine - Restaurant 1</p>
+                        <p class="text-sm text-gray-500">Jalan Utama, Bahau Center</p>
+                    </button>
+                    <button @click="finishDetails('Restaurant 2')" class="w-full p-6 border-2 rounded-2xl hover:bg-pale text-left bg-white shadow-sm">
+                        <p class="font-bold">Maleq Cuisine - Restaurant 2</p>
+                        <p class="text-sm text-gray-500">Bahau Gateway Mall</p>
+                    </button>
+                </div>
+            </template>
+
+            <template x-if="orderType === 'Dine-in'">
+                <div class="space-y-6">
+                    <h2 class="text-2xl font-black">Table Selection</h2>
+                    <p class="text-gray-500">Enter the table number on your stand.</p>
+                    <input type="text" placeholder="Table Number" x-model="checkoutForm.tableNumber" class="w-full p-6 border-2 rounded-2xl text-center text-4xl font-black text-brand bg-white uppercase">
+                    <button @click="finishDetails('Table ' + checkoutForm.tableNumber)" :disabled="!checkoutForm.tableNumber" class="w-full bg-brand text-white py-4 rounded-2xl font-black disabled:opacity-50">CONFIRM TABLE</button>
+                </div>
+            </template>
+        </section>
+
+        <section x-show="view === 'order-shop'" class="container mx-auto px-8 py-12">
+            <div class="flex justify-between items-center mb-10">
+                <div>
+                    <h2 class="text-3xl font-black">Add Items to Cart</h2>
+                    <p class="text-gray-500 font-bold" x-text="orderType + ' - ' + selectedDetail"></p>
+                </div>
+                <div class="bg-brand text-white px-8 py-4 rounded-2xl flex items-center gap-6 shadow-lg">
+                    <span class="font-bold" x-text="cart.length + ' Items'"></span>
+                    <button @click="view = 'checkout'" :disabled="cart.length === 0" class="bg-sunny text-brand px-4 py-1 rounded-lg font-black text-sm">PROCEED TO PAYMENT</button>
+                </div>
+            </div>
+            <div class="grid grid-cols-4 gap-8">
+                <template x-for="item in menuItems">
+                    <div x-show="item.available" class="bg-white rounded-2xl shadow-md border overflow-hidden hover:scale-[1.02] transition">
+                        <div class="h-40 bg-gray-50 flex items-center justify-center text-4xl" x-text="item.icon"></div>
+                        <div class="p-6">
+                            <h3 class="font-bold" x-text="item.name"></h3>
+                            <div class="flex justify-between items-center mt-4">
+                                <span class="text-xl font-black text-brand" x-text="'RM ' + item.price.toFixed(2)"></span>
+                                <button @click="addToCart(item)" class="bg-brand text-white w-10 h-10 rounded-full font-bold shadow-md hover:bg-secondary transition">+</button>
+                            </div>
+                        </div>
+                    </div>
+                </template>
+            </div>
+        </section>
+
+        <section x-show="view === 'checkout'" class="container mx-auto px-8 py-12 max-w-6xl">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+                <div class="space-y-8">
+                    <div class="bg-white p-10 rounded-3xl shadow-xl border">
+                        <h3 class="text-2xl font-black mb-6">Customer Information</h3>
+                        <div class="space-y-4">
+                            <input type="text" placeholder="Your Name" x-model="checkoutForm.name" class="w-full p-4 border rounded-xl bg-gray-50 focus:ring-2 ring-brand outline-none">
+                            <input type="text" placeholder="Phone Number" x-model="checkoutForm.phone" class="w-full p-4 border rounded-xl bg-gray-50 focus:ring-2 ring-brand outline-none">
+                            <template x-if="orderType === 'Delivery'">
+                                <textarea placeholder="Bahau Street Address" x-model="checkoutForm.address" class="w-full p-4 border rounded-xl bg-gray-50 h-32 focus:ring-2 ring-brand outline-none"></textarea>
+                            </template>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-10 rounded-3xl shadow-xl border">
+                        <h3 class="text-2xl font-black mb-6">Payment Method</h3>
+                        <div class="grid grid-cols-1 gap-4">
+                            <label class="p-4 border-2 rounded-xl flex items-center gap-4 cursor-pointer transition" :class="checkoutForm.payment === 'Online Banking' ? 'border-brand bg-pale/20' : 'border-gray-100'">
+                                <input type="radio" value="Online Banking" x-model="checkoutForm.payment" class="w-5 h-5 accent-brand">
+                                <div>
+                                    <p class="font-bold">Online Banking (FPX)</p>
+                                    <p class="text-xs text-gray-500">Pay now via your preferred bank</p>
+                                </div>
+                            </label>
+                            <label class="p-4 border-2 rounded-xl flex items-center gap-4 cursor-pointer transition" :class="checkoutForm.payment === 'Cashier' ? 'border-brand bg-pale/20' : 'border-gray-100'">
+                                <input type="radio" value="Cashier" x-model="checkoutForm.payment" class="w-5 h-5 accent-brand">
+                                <div>
+                                    <p class="font-bold">Pay at Cashier / Counter</p>
+                                    <p class="text-xs text-gray-500">Pay cash or card when you arrive or receive food</p>
+                                </div>
+                            </label>
+                            <label class="p-4 border-2 rounded-xl flex items-center gap-4 cursor-pointer transition" :class="checkoutForm.payment === 'E-Wallet' ? 'border-brand bg-pale/20' : 'border-gray-100'">
+                                <input type="radio" value="E-Wallet" x-model="checkoutForm.payment" class="w-5 h-5 accent-brand">
+                                <div>
+                                    <p class="font-bold">E-Wallet (GrabPay / TNG)</p>
+                                    <p class="text-xs text-gray-500">Scan QR code upon delivery/pickup</p>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white p-10 rounded-3xl shadow-xl border h-fit sticky top-28">
+                    <h3 class="text-xl font-black mb-6">Order Summary</h3>
+                    <div class="space-y-4 border-b pb-6 mb-6 max-h-64 overflow-y-auto">
+                        <template x-for="item in cart">
+                            <div class="flex justify-between">
+                                <span x-text="item.name"></span>
+                                <span class="font-bold" x-text="'RM ' + item.price.toFixed(2)"></span>
+                            </div>
+                        </template>
+                    </div>
+                    <div class="flex justify-between text-2xl font-black text-brand mb-8">
+                        <span>Total Payable</span>
+                        <span x-text="'RM ' + cartTotal().toFixed(2)"></span>
+                    </div>
+                    <button @click="placeOrder()" class="w-full bg-brand text-white py-5 rounded-2xl font-black text-xl hover:brightness-110 transition shadow-lg">CONFIRM ORDER</button>
+                    <p class="text-center text-[10px] text-gray-400 mt-4 uppercase font-bold tracking-widest">Maleq Cuisine - Bahau</p>
+                </div>
+            </div>
+        </section>
+
+        <section x-show="view === 'tracking'" class="container mx-auto px-8 py-20 max-w-4xl" x-transition>
+            <div class="text-center mb-16">
+                <h2 class="text-4xl font-black">Live Order Tracking</h2>
+                <p class="text-gray-500 mt-2">Kitchen: Maleq Cuisine Bahau HQ</p>
+            </div>
+            <template x-for="order in customerOrders" :key="order.id">
+                <div class="bg-white rounded-3xl shadow-xl border p-10 mb-10 border-t-8 border-brand">
+                    <div class="flex justify-between items-center mb-12">
+                        <div>
+                            <p class="text-xs font-bold text-gray-400 uppercase">Order ID</p>
+                            <h3 class="text-3xl font-black" x-text="'#' + order.id"></h3>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-xs font-bold text-gray-400 uppercase">Status</p>
+                            <p class="text-xl font-bold text-brand" x-text="order.status === 'New' ? 'Received' : (order.status === 'Process' ? 'Cooking' : 'Ready')"></p>
+                        </div>
+                    </div>
+                    
+                    <div class="relative flex justify-between">
+                        <div class="absolute top-5 left-0 w-full h-1 bg-gray-100 -z-10"></div>
+                        <div class="absolute top-5 left-0 h-1 bg-brand -z-10 transition-all duration-700" 
+                             :style="order.status === 'New' ? 'width: 0%' : (order.status === 'Process' ? 'width: 50%' : 'width: 100%')"></div>
+                        
+                        <div class="flex flex-col items-center">
+                            <div class="w-12 h-12 rounded-full border-4 bg-white flex items-center justify-center font-bold mb-2 shadow-sm" :class="['New', 'Process', 'Finished'].includes(order.status) ? 'step-active' : 'step-inactive'">✓</div>
+                            <span class="text-[11px] font-black uppercase">Received</span>
+                        </div>
+                        <div class="flex flex-col items-center">
+                            <div class="w-12 h-12 rounded-full border-4 bg-white flex items-center justify-center font-bold mb-2 shadow-sm" :class="['Process', 'Finished'].includes(order.status) ? 'step-active' : 'step-inactive'">👨‍🍳</div>
+                            <span class="text-[11px] font-black uppercase text-center">In Kitchen</span>
+                        </div>
+                        <div class="flex flex-col items-center">
+                            <div class="w-12 h-12 rounded-full border-4 bg-white flex items-center justify-center font-bold mb-2 shadow-sm" :class="order.status === 'Finished' ? 'step-active' : 'step-inactive'">🍱</div>
+                            <span class="text-[11px] font-black uppercase" x-text="order.type === 'Dine-in' ? 'Serving' : 'Ready'"></span>
+                        </div>
+                    </div>
+                </div>
+            </template>
+        </section>
+
+        <section x-show="view === 'about'" class="container mx-auto px-8 py-20 max-w-5xl">
+            <div class="grid grid-cols-2 gap-16 items-center">
+                <div class="bg-gray-200 h-[500px] rounded-3xl flex items-center justify-center text-8xl shadow-inner">👨‍🍳</div>
+                <div class="space-y-6">
+                    <h2 class="text-5xl font-black text-brand uppercase">Our Story</h2>
+                    <p class="text-xl text-gray-600 leading-relaxed">
+                        Founded in the heart of **Bahau, Negeri Sembilan**, Maleq Cuisine began with a simple mission: to serve honest, flavorful hot food that brings people together. 
+                    </p>
+                    <p class="text-lg text-gray-500 leading-relaxed">
+                        What started as a small family stall has grown into a beloved local institution. We specialize in signature grilled meats, authentic Malaysian hot dishes, and our famous session-based delivery system that ensures your meal arrives at the peak of its temperature and taste.
+                    </p>
+                    <div class="grid grid-cols-2 gap-4 mt-8">
+                        <div class="p-4 bg-pale/40 rounded-xl">
+                            <p class="font-black text-brand">Restaurant 1</p>
+                            <p class="text-xs">Central Bahau (Jalan Utama)</p>
+                        </div>
+                        <div class="p-4 bg-pale/40 rounded-xl">
+                            <p class="font-black text-brand">Restaurant 2</p>
+                            <p class="text-xs">Bahau Gateway Mall</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <div x-show="isAdmin" class="min-h-screen bg-slate-100 flex" x-cloak>
+        <aside class="w-80 bg-slate-900 text-white p-8 space-y-12">
+            <div>
+                <h1 class="text-2xl font-black text-brand">MALEQ ADMIN</h1>
+                <p class="text-xs text-gray-400">Bahau Kitchen Control</p>
+            </div>
+            <nav class="space-y-4">
+                <button @click="adminSubView = 'orders'" :class="adminSubView === 'orders' ? 'text-sunny' : 'text-gray-400'" class="block font-bold hover:text-white transition">📦 Live Orders</button>
+                <button @click="adminSubView = 'menu-manage'" :class="adminSubView === 'menu-manage' ? 'text-sunny' : 'text-gray-400'" class="block font-bold hover:text-white transition">🍴 Menu Management</button>
+            </nav>
+            <button @click="isAdmin = false" class="bg-brand w-full py-4 rounded-xl font-black shadow-lg">Exit Admin View</button>
+        </aside>
+
+        <main class="flex-1 p-12 overflow-y-auto">
+            <div x-show="adminSubView === 'orders'">
+                <h2 class="text-3xl font-black mb-10">Kitchen Display System</h2>
+                <div class="grid grid-cols-3 gap-8">
+                    <div class="bg-white p-6 rounded-3xl shadow-sm border-t-8 border-brand">
+                        <h4 class="font-black text-xs uppercase mb-6 text-gray-400">Incoming</h4>
+                        <template x-for="order in orders.filter(o => o.status === 'New')">
+                            <div class="bg-gray-50 p-5 rounded-2xl mb-4 border">
+                                <div class="flex justify-between items-start mb-2">
+                                    <p class="font-black text-xl">#<span x-text="order.id"></span></p>
+                                    <span class="text-[10px] font-black bg-sunny text-brand px-2 py-1 rounded" x-text="order.payment"></span>
+                                </div>
+                                <p class="text-xs font-bold text-brand uppercase" x-text="order.type + (order.table ? ' - Table ' + order.table : '')"></p>
+                                <p class="text-sm font-bold text-gray-600 mb-4" x-text="order.name"></p>
+                                <button @click="updateOrderStatus(order.id, 'Process')" class="w-full bg-brand text-white py-2 rounded-xl font-bold text-xs uppercase shadow-md">Send to Chef</button>
+                            </div>
+                        </template>
+                    </div>
+                    <div class="bg-white p-6 rounded-3xl shadow-sm border-t-8 border-blue-500">
+                        <h4 class="font-black text-xs uppercase mb-6 text-gray-400">Cooking</h4>
+                        <template x-for="order in orders.filter(o => o.status === 'Process')">
+                            <div class="bg-gray-50 p-5 rounded-2xl mb-4 border border-blue-100">
+                                <p class="font-black text-xl">#<span x-text="order.id"></span></p>
+                                <p class="text-[10px] font-bold text-blue-600 mb-4" x-text="order.payment"></p>
+                                <button @click="updateOrderStatus(order.id, 'Finished')" class="w-full bg-blue-500 text-white py-2 rounded-xl font-bold text-xs uppercase shadow-md">Mark as Ready</button>
+                            </div>
+                        </template>
+                    </div>
+                    <div class="bg-white p-6 rounded-3xl shadow-sm border-t-8 border-green-500">
+                        <h4 class="font-black text-xs uppercase mb-6 text-gray-400">Completed</h4>
+                        <template x-for="order in orders.filter(o => o.status === 'Finished')">
+                            <div class="bg-gray-50 p-5 rounded-2xl mb-4 border opacity-50">
+                                <p class="font-black">#<span x-text="order.id"></span></p>
+                                <p class="text-[10px] font-bold">Done</p>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+            </div>
+
+            <div x-show="adminSubView === 'menu-manage'">
+                <h2 class="text-3xl font-black mb-10">Menu Control Panel</h2>
+                <div class="bg-white rounded-3xl shadow-sm border overflow-hidden">
+                    <table class="w-full text-left">
+                        <thead class="bg-gray-50 border-b">
+                            <tr>
+                                <th class="p-6 font-black uppercase text-xs">Dish Name</th>
+                                <th class="p-6 font-black uppercase text-xs">Current Price</th>
+                                <th class="p-6 font-black uppercase text-xs">Inventory Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <template x-for="item in menuItems">
+                                <tr class="border-t hover:bg-gray-50 transition">
+                                    <td class="p-6 flex items-center gap-4">
+                                        <span class="text-3xl" x-text="item.icon"></span>
+                                        <span class="font-black text-lg" x-text="item.name"></span>
+                                    </td>
+                                    <td class="p-6 font-bold text-brand" x-text="'RM ' + item.price.toFixed(2)"></td>
+                                    <td class="p-6">
+                                        <button @click="item.available = !item.available" 
+                                                :class="item.available ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'"
+                                                class="px-6 py-2 rounded-full text-xs font-black uppercase transition"
+                                                x-text="item.available ? 'Active' : 'Sold Out'">
+                                        </button>
+                                    </td>
+                                </tr>
+                            </template>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        function maleqApp() {
+            return {
+                isAdmin: false,
+                view: 'home',
+                adminSubView: 'orders',
+                orderType: '',
+                selectedDetail: '',
+                cart: [],
+                customerOrders: [],
+                checkoutForm: { 
+                    name: '', phone: '', address: '', tableNumber: '', 
+                    payment: 'Online Banking' 
+                },
+                menuItems: [
+                    { id: 1, name: 'Maleq Signature Burger', price: 18.00, icon: '🍔', available: true },
+                    { id: 2, name: 'Bahau Grilled Chicken', price: 24.50, icon: '🍗', available: true },
+                    { id: 3, name: 'Hot Sizzling Lamb', price: 35.00, icon: '🥩', available: true },
+                    { id: 4, name: 'Crispy Seafood Platter', price: 42.00, icon: '🍤', available: true },
+                    { id: 5, name: 'Cheesy Wedges', price: 9.00, icon: '🍟', available: true },
+                    { id: 6, name: 'Special Fried Rice', price: 15.00, icon: '🍛', available: true }
+                ],
+                orders: [
+                    { id: 1051, name: 'Amsyar', type: 'Dine-in', table: 'C05', payment: 'Cashier', status: 'New' }
+                ],
+
+                startOrder() {
+                    this.view = 'order-setup';
+                },
+                setupOrder(type) {
+                    this.orderType = type;
+                    this.view = 'order-details';
+                },
+                finishDetails(detail) {
+                    this.selectedDetail = detail;
+                    this.view = 'order-shop';
+                },
+                addToCart(item) {
+                    this.cart.push(item);
+                },
+                cartTotal() {
+                    return this.cart.reduce((sum, item) => sum + item.price, 0);
+                },
+                placeOrder() {
+                    const id = Math.floor(1000 + Math.random() * 9000);
+                    const newOrder = { 
+                        id: id, 
+                        name: this.checkoutForm.name || 'Guest', 
+                        type: this.orderType, 
+                        table: this.orderType === 'Dine-in' ? this.checkoutForm.tableNumber : '',
+                        payment: this.checkoutForm.payment,
+                        status: 'New' 
+                    };
+                    this.orders.push(newOrder);
+                    this.customerOrders.push(newOrder);
+                    alert(`Order #${id} Confirmed using ${this.checkoutForm.payment}. Tracking your meal now.`);
+                    this.cart = [];
+                    this.view = 'tracking';
+                },
+                updateOrderStatus(id, status) {
+                    const o = this.orders.find(x => x.id === id);
+                    if (o) o.status = status;
+                }
+            }
+        }
+    </script>
+</body>
+</html>
