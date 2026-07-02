@@ -1,7 +1,5 @@
 # 🍽️ Maleq Cuisine - Full Stack Restaurant Ordering & Admin System
 
-![Maleq Cuisine](https://via.placeholder.com/1200x400.png?text=Maleq+Cuisine+Dashboard)
-
 > A modern, full-stack restaurant management and ordering system built with **React**, **Node.js**, **Express**, and **MySQL**. This platform features a dynamic customer ordering interface and a comprehensive administrative dashboard for real-time menu management, order tracking, and custom promotional widgets.
 
 ## ✨ Features
@@ -105,14 +103,9 @@ MaleqCuisine/
 └── DOCS_INDEX.md             # Detailed internal documentation & architectural guides
 ```
 
-## 👨‍💻 About Me
+## 🤝 Contact
 
-I'm a passionate **Full Stack Developer** actively looking for internship opportunities. This project demonstrates my ability to:
-- Build complete, end-to-end web applications.
-- Design relational databases and write optimized SQL queries.
-- Handle complex state management and responsive UI design.
-- Implement secure authentication and API integration.
-- Manage file uploads and static file serving.
+Thank you for checking out my project! If you're a recruiter or fellow developer with questions or feedback, feel free to reach out.
 
 - 💼 **LinkedIn:** [LinkedIn Profile](https://www.linkedin.com/in/danial-ihsan-mohd-nadhir-66635b3a8/)
 - 🐙 **GitHub:** [GitHub Profile](https://github.com/DanSan0408e)
