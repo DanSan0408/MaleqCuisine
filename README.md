@@ -121,4 +121,3 @@ I'm a passionate **Full Stack Developer** actively looking for internship opport
 
 ---
 
-*If you find this project interesting or helpful, please consider leaving a ⭐!*
