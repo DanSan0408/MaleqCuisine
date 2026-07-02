@@ -114,8 +114,8 @@ I'm a passionate **Full Stack Developer** actively looking for internship opport
 - Implement secure authentication and API integration.
 - Manage file uploads and static file serving.
 
-- 💼 **LinkedIn:** [Your LinkedIn Profile](https://www.linkedin.com/in/danial-ihsan-mohd-nadhir-66635b3a8/)
-- 🐙 **GitHub:** [Your GitHub Profile](https://github.com/DanSan0408e)
+- 💼 **LinkedIn:** [LinkedIn Profile](https://www.linkedin.com/in/danial-ihsan-mohd-nadhir-66635b3a8/)
+- 🐙 **GitHub:** [GitHub Profile](https://github.com/DanSan0408e)
 - ✉️ **Email:** san.dan0408@gmail.com
 
 
