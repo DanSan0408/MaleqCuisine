@@ -105,15 +105,6 @@ MaleqCuisine/
 └── DOCS_INDEX.md             # Detailed internal documentation & architectural guides
 ```
 
-## 📸 Screenshots
-
-*(Suggested: Add screenshots of your application here)*
-
-<p align="center">
-  <img src="https://via.placeholder.com/400x250.png?text=Customer+Ordering+Interface" width="45%" />
-  <img src="https://via.placeholder.com/400x250.png?text=Admin+Dashboard" width="45%" />
-</p>
-
 ## 👨‍💻 About Me
 
 I'm a passionate **Full Stack Developer** actively looking for internship opportunities. This project demonstrates my ability to:
