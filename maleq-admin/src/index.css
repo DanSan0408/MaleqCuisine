@@ -7,13 +7,13 @@
 @layer base {
   :root {
     /* === Brand Colors === */
-    --color-brand-primary:       #f97316; /* orange-500 */
-    --color-brand-primary-hover: #ea580c; /* orange-600 */
-    --color-brand-primary-light: #fff7ed; /* orange-50 */
+    --color-brand-primary:       #F57600;
+    --color-brand-primary-hover: #DE4F02;
+    --color-brand-primary-light: #FF9633;
 
-    --color-brand-amber:         #b45309; /* amber-700 */
-    --color-brand-amber-light:   #fef3c7; /* amber-100 */
-    --color-brand-amber-border:  #fcd34d; /* amber-300 */
+    --color-brand-amber:         #F57600; /* using bright orange for amber to maintain contrast where amber is used for text */
+    --color-brand-amber-light:   #FFE77A;
+    --color-brand-amber-border:  #FEEC48;
 
     /* === Neutral/Surface Colors === */
     --color-surface-page:        #ffffff;
@@ -32,7 +32,7 @@
     /* === Border Colors === */
     --color-border-default:      #e2e8f0; /* slate-200 */
     --color-border-muted:        rgba(255, 255, 255, 0.70);
-    --color-border-amber:        #fcd34d; /* amber-300 */
+    --color-border-amber:        #FEEC48;
 
     /* === Semantic Colors === */
     --color-success:             #16a34a;
@@ -41,7 +41,7 @@
     --color-info:                #2563eb;
 
     /* === Page Background === */
-    --color-bg-page: radial-gradient(circle at top, #fef3c7 0%, #fff7ed 34%, #ffffff 72%);
+    --color-bg-page: radial-gradient(circle at top, rgba(254, 236, 72, 0.15) 0%, rgba(255, 150, 51, 0.05) 40%, #ffffff 80%);
 
     /* === Z-Index Layers === */
     --z-base:       0;

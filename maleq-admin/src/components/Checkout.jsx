@@ -1,4 +1,4 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { OrderContext } from '../context/OrderContext';
 import Cart from './Cart';
@@ -27,6 +27,24 @@ export default function Checkout() {
     const [error, setError] = useState(null);
     const navigate = useNavigate();
 
+    const [paymentMethod, setPaymentMethod] = useState('qr_code');
+    const [qrCodeUrl, setQrCodeUrl] = useState(null);
+    const [receiptImage, setReceiptImage] = useState(null);
+
+    useEffect(() => {
+        const fetchSettings = async () => {
+            try {
+                const res = await axios.get('http://localhost:5000/api/payment/settings');
+                if (res.data.settings && res.data.settings.qr_code_url) {
+                    setQrCodeUrl(res.data.settings.qr_code_url);
+                }
+            } catch (err) {
+                console.error('Failed to fetch payment settings:', err);
+            }
+        };
+        fetchSettings();
+    }, []);
+
     const handleInputChange = (field, value) => {
         setCustomerInfo(prev => ({ ...prev, [field]: value }));
     };
@@ -48,6 +66,10 @@ export default function Checkout() {
             setError('Please enter your delivery address');
             return false;
         }
+        if (paymentMethod === 'qr_code' && !receiptImage) {
+            setError('Please upload your payment receipt');
+            return false;
+        }
         return true;
     };
 
@@ -65,20 +87,20 @@ export default function Checkout() {
                 customerName: customerInfo.name,
                 customerPhone: customerInfo.phone,
                 customerEmail: customerInfo.email || null,
-                items: cart.map(item => ({ menu_item_id: item.id, quantity: item.quantity })),
+                items: cart.map(item => ({ menu_item_id: item.id, quantity: item.quantity, remarks: item.remarks || '' })),
                 deliverySessionId: orderType === 'delivery' ? deliverySessionId : null,
                 deliveryAddress: orderType === 'delivery' ? deliveryAddress : null,
                 branchId: orderType === 'pickup' ? selectedBranch : null,
                 tableNumber: orderType === 'dine_in' ? tableNumber : null,
                 dineInTime: orderType === 'dine_in' ? dineInTime : null,
-                dineInPax: orderType === 'dine_in' ? dineInPax : null
+                dineInPax: orderType === 'dine_in' ? dineInPax : null,
+                paymentMethod
             };
 
             const headers = {
                 'Content-Type': 'application/json'
             };
 
-            // Add authorization header if user is logged in
             if (token) {
                 headers['Authorization'] = `Bearer ${token}`;
             }
@@ -90,7 +112,29 @@ export default function Checkout() {
             );
 
             if (response.data.success) {
-                localStorage.setItem('lastOrderId', String(response.data.orderId));
+                const orderId = response.data.orderId;
+                
+                // Upload receipt if qr_code payment
+                if (paymentMethod === 'qr_code' && receiptImage) {
+                    const formData = new FormData();
+                    formData.append('receipt', receiptImage);
+                    try {
+                        const receiptHeaders = { 'Content-Type': 'multipart/form-data' };
+                        if (token) receiptHeaders['Authorization'] = `Bearer ${token}`;
+                        await axios.post(`http://localhost:5000/api/payment/orders/${orderId}/receipt`, formData, {
+                            headers: receiptHeaders
+                        });
+                    } catch (receiptErr) {
+                        console.error('Failed to upload receipt', receiptErr);
+                    }
+                }
+
+                if (paymentMethod === 'gateway') {
+                    alert('Redirecting to Billplz payment gateway (Placeholder)...');
+                    // In a real implementation, you would redirect the user to a gateway URL provided by the backend.
+                }
+
+                localStorage.setItem('lastOrderId', String(orderId));
                 localStorage.setItem('lastOrderPhone', customerInfo.phone.trim());
 
                 resetOrder();
@@ -100,7 +144,7 @@ export default function Checkout() {
                     navigate(`/track-order/${response.data.trackingToken}`, { replace: true });
                 } else {
                     navigate('/customer/dashboard', { replace: true });
-                    alert('Order placed successfully, but live tracking is not available until the tracking token column is added to the orders table.');
+                    alert('Order placed successfully.');
                 }
             }
         } catch (err) {
@@ -175,6 +219,43 @@ export default function Checkout() {
                     )}
                 </div>
 
+                {/* Payment Method */}
+                <div className="space-y-4">
+                    <h3 className="text-lg font-bold text-slate-900">Payment Method</h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <label className={`cursor-pointer rounded-2xl border-2 p-4 text-center transition-all ${paymentMethod === 'gateway' ? 'border-orange-500 bg-orange-50 shadow-sm' : 'border-slate-200 bg-white hover:border-orange-300'}`}>
+                            <input type="radio" name="paymentMethod" value="gateway" checked={paymentMethod === 'gateway'} onChange={() => setPaymentMethod('gateway')} className="hidden" />
+                            <span className="block text-2xl mb-2">💳</span>
+                            <span className="block font-bold text-slate-900">Online Payment (Billplz)</span>
+                        </label>
+                        <label className={`cursor-pointer rounded-2xl border-2 p-4 text-center transition-all ${paymentMethod === 'qr_code' ? 'border-orange-500 bg-orange-50 shadow-sm' : 'border-slate-200 bg-white hover:border-orange-300'}`}>
+                            <input type="radio" name="paymentMethod" value="qr_code" checked={paymentMethod === 'qr_code'} onChange={() => setPaymentMethod('qr_code')} className="hidden" />
+                            <span className="block text-2xl mb-2">📱</span>
+                            <span className="block font-bold text-slate-900">QR Pay</span>
+                        </label>
+                    </div>
+
+                    {paymentMethod === 'qr_code' && (
+                        <div className="rounded-2xl border border-amber-200 bg-amber-50 p-6 space-y-4 mt-4">
+                            <p className="text-sm text-amber-800 font-medium text-center">Please scan the QR code to make payment, then upload your receipt below to complete the order.</p>
+                            {qrCodeUrl ? (
+                                <img src={`http://localhost:5000${qrCodeUrl}`} alt="Payment QR Code" className="w-48 h-auto mx-auto border border-slate-200 rounded-lg shadow-sm" />
+                            ) : (
+                                <div className="w-48 h-48 bg-amber-100 mx-auto rounded-lg flex items-center justify-center text-sm text-amber-700 text-center p-4">QR Code not set by admin</div>
+                            )}
+                            <div>
+                                <label className="label text-amber-900">Upload Payment Receipt *</label>
+                                <input type="file" accept="image/*" onChange={(e) => setReceiptImage(e.target.files[0])} className="input bg-white border-amber-200 focus:border-amber-500 focus:ring-amber-500" />
+                            </div>
+                        </div>
+                    )}
+                    {paymentMethod === 'gateway' && (
+                        <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                            <p className="text-slate-600 text-sm font-medium">You will be redirected to the secure Billplz payment gateway after placing the order.</p>
+                        </div>
+                    )}
+                </div>
+
                 {/* Order Details Summary */}
                 <div className="space-y-4">
                     <h3 className="text-lg font-bold text-slate-900">Order Details</h3>
@@ -220,13 +301,6 @@ export default function Checkout() {
                             <span className="font-bold text-slate-900">{cart.length} item(s)</span>
                         </div>
                     </div>
-                </div>
-
-                {/* Payment Note */}
-                <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
-                    <p className="text-amber-800 text-sm">
-                        <span className="font-semibold">💳 Payment:</span> Payment details will be collected at the time of {orderType === 'delivery' ? 'delivery' : 'pickup'}. You can also pay in-store.
-                    </p>
                 </div>
 
                 {/* Submit Button */}

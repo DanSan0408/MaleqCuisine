@@ -1,4 +1,5 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
+import { useEffect, useRef } from 'react';
 import Login from './pages/Login';
 import CustomerRegister from './pages/CustomerRegister';
 import CustomerDashboard from './pages/CustomerDashboard';
@@ -12,12 +13,31 @@ import CustomerOrders from './pages/CustomerOrders';
 import CompanyStoryPage from './pages/CompanyStoryPage';
 import { OrderProvider } from './context/OrderContext';
 
+function InitialRedirect() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const hasRedirected = useRef(false);
+
+  useEffect(() => {
+    if (!hasRedirected.current) {
+      hasRedirected.current = true;
+      // Redirect to the launching screen on every fresh app load/refresh if in the customer area
+      if (location.pathname.startsWith('/customer') && location.pathname !== '/customer/order') {
+        navigate('/customer/order', { replace: true });
+      }
+    }
+  }, [navigate, location]);
+
+  return null;
+}
+
 function App() {
   return (
     <OrderProvider>
       <Router>
+        <InitialRedirect />
         <Routes>
-          <Route path="/" element={<Navigate to="/customer/dashboard" replace />} />
+          <Route path="/" element={<Navigate to="/customer/order" replace />} />
           
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<CustomerRegister />} />

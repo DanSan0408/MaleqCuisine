@@ -90,11 +90,31 @@ async function ensureDailySessionsForDate(poolOrConnection, targetDate) {
     );
 }
 
+async function cleanupOldDeliverySessions(poolOrConnection) {
+    // Delivery sessions older than 24 hours (1 day) from CURRENT_DATE
+    // First, unlink orders to prevent foreign key constraint failures
+    await poolOrConnection.query(
+        `UPDATE orders 
+         SET delivery_session_id = NULL 
+         WHERE delivery_session_id IN (
+             SELECT id FROM delivery_sessions 
+             WHERE date < DATE_SUB(CURRENT_DATE, INTERVAL 1 DAY)
+         )`
+    );
+
+    // Then delete the old sessions
+    await poolOrConnection.query(
+        `DELETE FROM delivery_sessions 
+         WHERE date < DATE_SUB(CURRENT_DATE, INTERVAL 1 DAY)`
+    );
+}
+
 module.exports = {
     DEFAULT_SESSION_TEMPLATES,
     toSqlDate,
     ensureDailySessionTemplates,
     getDailySessionTemplates,
     upsertDailySessionTemplate,
-    ensureDailySessionsForDate
+    ensureDailySessionsForDate,
+    cleanupOldDeliverySessions
 };

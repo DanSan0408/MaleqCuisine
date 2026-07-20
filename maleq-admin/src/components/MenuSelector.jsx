@@ -11,6 +11,10 @@ export default function MenuSelector() {
     const [error, setError] = useState(null);
     const [filter, setFilter] = useState('all');
     
+    // Remarks Modal State
+    const [remarksModalItem, setRemarksModalItem] = useState(null);
+    const [remarksText, setRemarksText] = useState('');
+    
     const { addToCart, cart } = useContext(OrderContext);
 
     useEffect(() => {
@@ -42,8 +46,20 @@ export default function MenuSelector() {
     };
 
     const getItemQuantity = (itemId) => {
-        const item = cart.find(i => i.id === itemId);
-        return item ? item.quantity : 0;
+        return cart.filter(i => i.id === itemId).reduce((sum, i) => sum + i.quantity, 0);
+    };
+
+    const handleOpenRemarks = (item) => {
+        setRemarksModalItem(item);
+        setRemarksText('');
+    };
+
+    const handleAddWithRemarks = (skip = false) => {
+        if (remarksModalItem) {
+            addToCart(remarksModalItem, skip ? '' : remarksText);
+            setRemarksModalItem(null);
+            setRemarksText('');
+        }
     };
 
     const categoryFilters = ['all', ...categories.map(category => category.name), ...new Set(menuItems.map(item => item.category).filter(Boolean))].filter((value, index, array) => array.indexOf(value) === index);
@@ -151,7 +167,7 @@ export default function MenuSelector() {
                                             </div>
 
                                             <button
-                                                onClick={() => addToCart(item)}
+                                                onClick={() => handleOpenRemarks(item)}
                                                 className="btn-base bg-orange-500 text-white hover:bg-orange-600 flex items-center gap-2"
                                             >
                                                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -204,7 +220,7 @@ export default function MenuSelector() {
                                             </div>
 
                                             <button
-                                                onClick={() => addToCart(item)}
+                                                onClick={() => handleOpenRemarks(item)}
                                                 className="btn-base bg-orange-500 text-white hover:bg-orange-600 flex items-center gap-2"
                                             >
                                                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -232,6 +248,39 @@ export default function MenuSelector() {
                     </div>
                     <p className="text-sm font-semibold text-slate-900">No items available</p>
                     <p className="mt-1 text-sm text-slate-500">Try selecting a different category.</p>
+                </div>
+            )}
+
+            {/* Remarks Modal */}
+            {remarksModalItem && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm transition-opacity">
+                    <div className="w-full max-w-sm rounded-3xl bg-white p-6 shadow-2xl">
+                        <h3 className="text-xl font-black text-slate-900">Any remarks for {remarksModalItem.name}?</h3>
+                        <p className="mt-1 text-sm text-slate-500">e.g., no onions, extra spicy</p>
+                        
+                        <textarea
+                            value={remarksText}
+                            onChange={(e) => setRemarksText(e.target.value)}
+                            className="mt-4 w-full rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm text-slate-900 placeholder:text-slate-400 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500"
+                            rows="3"
+                            placeholder="Type your remarks here..."
+                        ></textarea>
+                        
+                        <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-end">
+                            <button
+                                onClick={() => handleAddWithRemarks(true)}
+                                className="rounded-full border border-slate-200 px-5 py-2.5 text-sm font-bold text-slate-600 transition hover:bg-slate-50 hover:text-slate-900"
+                            >
+                                Skip
+                            </button>
+                            <button
+                                onClick={() => handleAddWithRemarks(false)}
+                                className="rounded-full bg-orange-500 px-5 py-2.5 text-sm font-bold text-white transition hover:bg-orange-600 shadow-sm"
+                            >
+                                Add to Order
+                            </button>
+                        </div>
+                    </div>
                 </div>
             )}
         </div>

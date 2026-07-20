@@ -206,7 +206,7 @@ async function loadOrdersWithItems(rows) {
     return Promise.all(
         rows.map(async (order) => {
             const [items] = await pool.query(
-                `SELECT oi.id, oi.quantity, oi.price, mi.name, mi.description, mi.image_url
+                `SELECT oi.id, oi.quantity, oi.price, oi.remarks, mi.name, mi.description, mi.image_url
                  FROM order_items oi
                  JOIN menu_items mi ON oi.menu_item_id = mi.id
                  WHERE oi.order_id = ?`,
@@ -324,7 +324,8 @@ exports.createOrder = async (req, res) => {
             branchId,
             tableNumber,
             dineInTime,
-            dineInPax
+            dineInPax,
+            paymentMethod
         } = req.body;
 
         const userId = req.userId || null;
@@ -424,7 +425,8 @@ exports.createOrder = async (req, res) => {
             orderItemsData.push({
                 menu_item_id: item.menu_item_id,
                 quantity: item.quantity,
-                price
+                price,
+                remarks: item.remarks || null
             });
         }
 
@@ -464,9 +466,22 @@ exports.createOrder = async (req, res) => {
             orderValues.push(orderType === 'dine_in' ? dineInTime || null : null);
         }
 
+        const hasPaymentMethodColumn = await tableHasColumn('orders', 'payment_method');
+        const hasPaymentStatusColumn = await tableHasColumn('orders', 'payment_status');
+
         if (hasDineInPaxColumn) {
             orderColumns.push('dine_in_pax');
             orderValues.push(orderType === 'dine_in' ? parseInt(dineInPax, 10) || null : null);
+        }
+
+        if (hasPaymentMethodColumn && paymentMethod) {
+            orderColumns.push('payment_method');
+            orderValues.push(paymentMethod);
+        }
+
+        if (hasPaymentStatusColumn) {
+            orderColumns.push('payment_status');
+            orderValues.push('pending');
         }
 
         if (hasTrackingTokenColumn) {
@@ -489,8 +504,8 @@ exports.createOrder = async (req, res) => {
         // Insert order items
         for (const item of orderItemsData) {
             await connection.query(
-                'INSERT INTO order_items (order_id, menu_item_id, quantity, price) VALUES (?, ?, ?, ?)',
-                [orderId, item.menu_item_id, item.quantity, item.price]
+                'INSERT INTO order_items (order_id, menu_item_id, quantity, price, remarks) VALUES (?, ?, ?, ?, ?)',
+                [orderId, item.menu_item_id, item.quantity, item.price, item.remarks]
             );
         }
 
@@ -561,7 +576,7 @@ exports.getOrderDetails = async (req, res) => {
             success: true,
             order: decorateOrder(order, await (async () => {
                 const [items] = await pool.query(
-                    `SELECT oi.id, oi.quantity, oi.price, mi.name, mi.description, mi.image_url
+                    `SELECT oi.id, oi.quantity, oi.price, oi.remarks, mi.name, mi.description, mi.image_url
                      FROM order_items oi
                      JOIN menu_items mi ON oi.menu_item_id = mi.id
                      WHERE oi.order_id = ?`,
@@ -599,7 +614,7 @@ exports.getOrderTracking = async (req, res) => {
             success: true,
             order: decorateOrder(order, await (async () => {
                 const [items] = await pool.query(
-                    `SELECT oi.id, oi.quantity, oi.price, mi.name, mi.description, mi.image_url
+                    `SELECT oi.id, oi.quantity, oi.price, oi.remarks, mi.name, mi.description, mi.image_url
                      FROM order_items oi
                      JOIN menu_items mi ON oi.menu_item_id = mi.id
                      WHERE oi.order_id = ?`,
@@ -647,7 +662,7 @@ exports.lookupOrderTracking = async (req, res) => {
 
         const order = orders[0];
         const [items] = await pool.query(
-            `SELECT oi.id, oi.quantity, oi.price, mi.name, mi.description, mi.image_url
+            `SELECT oi.id, oi.quantity, oi.price, oi.remarks, mi.name, mi.description, mi.image_url
              FROM order_items oi
              JOIN menu_items mi ON oi.menu_item_id = mi.id
              WHERE oi.order_id = ?`,
@@ -703,7 +718,7 @@ exports.confirmTrackedOrder = async (req, res) => {
             message: 'Order confirmed successfully',
             order: decorateOrder(updatedOrders[0], await (async () => {
                 const [items] = await pool.query(
-                    `SELECT oi.id, oi.quantity, oi.price, mi.name, mi.description, mi.image_url
+                    `SELECT oi.id, oi.quantity, oi.price, oi.remarks, mi.name, mi.description, mi.image_url
                      FROM order_items oi
                      JOIN menu_items mi ON oi.menu_item_id = mi.id
                      WHERE oi.order_id = ?`,

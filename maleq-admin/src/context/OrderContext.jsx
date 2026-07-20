@@ -5,7 +5,7 @@ export const OrderContext = createContext();
 export const OrderProvider = ({ children }) => {
     const [orderType, setOrderType] = useState(null); // 'delivery', 'pickup', 'dine_in'
     const [cart, setCart] = useState([]);
-    const [currentStep, setCurrentStep] = useState('type'); // 'type', 'order', 'checkout'
+    const [currentStep, setCurrentStep] = useState('landing'); // 'landing', 'type', 'order', 'checkout'
     
     // Delivery
     const [deliverySessionId, setDeliverySessionId] = useState(null);
@@ -26,32 +26,33 @@ export const OrderProvider = ({ children }) => {
         email: ''
     });
 
-    const addToCart = useCallback((menuItem) => {
+    const addToCart = useCallback((menuItem, remarks = '') => {
         setCart(prevCart => {
-            const existingItem = prevCart.find(item => item.id === menuItem.id);
+            const cartItemId = `${menuItem.id}-${remarks.trim()}`;
+            const existingItem = prevCart.find(item => item.cartItemId === cartItemId);
             if (existingItem) {
                 return prevCart.map(item =>
-                    item.id === menuItem.id
+                    item.cartItemId === cartItemId
                         ? { ...item, quantity: item.quantity + 1 }
                         : item
                 );
             } else {
-                return [...prevCart, { ...menuItem, quantity: 1 }];
+                return [...prevCart, { ...menuItem, quantity: 1, remarks: remarks.trim(), cartItemId }];
             }
         });
     }, []);
 
-    const removeFromCart = useCallback((menuItemId) => {
-        setCart(prevCart => prevCart.filter(item => item.id !== menuItemId));
+    const removeFromCart = useCallback((cartItemId) => {
+        setCart(prevCart => prevCart.filter(item => item.cartItemId !== cartItemId));
     }, []);
 
-    const updateCartQuantity = useCallback((menuItemId, quantity) => {
+    const updateCartQuantity = useCallback((cartItemId, quantity) => {
         if (quantity <= 0) {
-            removeFromCart(menuItemId);
+            removeFromCart(cartItemId);
         } else {
             setCart(prevCart =>
                 prevCart.map(item =>
-                    item.id === menuItemId
+                    item.cartItemId === cartItemId
                         ? { ...item, quantity }
                         : item
                 )
@@ -75,7 +76,7 @@ export const OrderProvider = ({ children }) => {
     const resetOrder = useCallback(() => {
         setOrderType(null);
         setCart([]);
-        setCurrentStep('type');
+        setCurrentStep('landing');
         setDeliverySessionId(null);
         setDeliveryAddress('');
         setSelectedBranch(null);

@@ -1,5 +1,6 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useContext } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { OrderContext } from '../context/OrderContext';
 
 function UserAvatarIcon() {
     return (
@@ -12,6 +13,7 @@ function UserAvatarIcon() {
 
 export default function Header({ pageTitle = 'Dashboard' }) {
     const navigate = useNavigate();
+    const { setCurrentStep } = useContext(OrderContext);
     const [avatarOpen, setAvatarOpen] = useState(false);
 
     const token = localStorage.getItem('accessToken') || localStorage.getItem('token');
@@ -32,56 +34,57 @@ export default function Header({ pageTitle = 'Dashboard' }) {
     };
 
     return (
-        <header className="sticky top-0 z-20 flex items-center justify-between gap-4 border-b border-white/70 bg-white/90 px-4 py-4 shadow-[0_20px_60px_rgba(15,23,42,0.08)] backdrop-blur sm:px-6 lg:px-10">
-            {/* LEFT: Brand + Page title */}
+        <div className="sticky top-4 z-50 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full transition-all duration-300">
+            <header className="flex items-center justify-between gap-4 rounded-full border-2 border-white/60 bg-white/75 px-6 py-3 shadow-[0_8px_32px_rgba(245,118,0,0.1)] backdrop-blur-xl transition-all duration-500 hover:shadow-[0_16px_48px_rgba(245,118,0,0.15)] hover:bg-white/90">
+                {/* LEFT: Brand + Page title */}
             <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.35em] text-amber-700">
+                <p className="text-xs font-black uppercase tracking-[0.35em] text-[#DE4F02]">
                     Maleq Cuisine
                 </p>
-                <h1 className="mt-1 font-display text-xl font-black tracking-tight text-slate-900 sm:text-2xl">
+                <h1 className="mt-1 font-display text-xl font-black tracking-tight text-slate-800 sm:text-2xl drop-shadow-sm">
                     {pageTitle}
                 </h1>
             </div>
 
             {/* CENTER: Desktop nav */}
-            <nav className="hidden items-center gap-6 text-sm font-semibold text-slate-600 md:flex">
-                <Link to="/customer/dashboard" className="transition hover:text-amber-700">Home</Link>
-                <Link to="/customer/story" className="transition hover:text-amber-700">Our Story</Link>
+            <nav className="hidden items-center gap-6 text-sm font-bold text-slate-600 md:flex">
+                <Link to="/customer/dashboard" className="transition hover:text-[#F57600] hover:-translate-y-0.5">Home</Link>
+                <Link to="/customer/story" className="transition hover:text-[#F57600] hover:-translate-y-0.5">Our Story</Link>
             </nav>
 
             {/* RIGHT: Action buttons + Auth */}
-            <div className="relative flex items-center gap-3 text-sm font-semibold">
-                <Link to="/track-order" className="hidden btn-base border border-amber-300 bg-amber-50 text-amber-800 transition hover:border-amber-500 hover:bg-amber-100 md:inline-flex">
+            <div className="relative flex items-center gap-3 text-sm font-bold">
+                <Link to="/track-order" className="hidden btn-base rounded-full border-2 border-[#FFE77A] bg-[#FFE77A]/20 text-[#DE4F02] transition-all hover:border-[#F57600] hover:bg-[#FFE77A]/50 hover:-translate-y-0.5 md:inline-flex shadow-sm">
                     Track order
                 </Link>
                 {isAuthenticated && (
-                    <Link to="/customer/orders" className="hidden btn-base border border-slate-200 bg-white text-slate-700 transition hover:border-amber-500 hover:text-amber-700 md:inline-flex">
+                    <Link to="/customer/orders" className="hidden btn-base rounded-full border-2 border-slate-200 bg-white text-slate-700 transition-all hover:border-[#FF9633] hover:text-[#DE4F02] hover:-translate-y-0.5 md:inline-flex shadow-sm">
                         My orders
                     </Link>
                 )}
-                <Link to="/customer/order" className="hidden btn-base bg-orange-500 text-white transition hover:bg-orange-600 md:inline-flex">
+                <Link to="/customer/order" onClick={() => setCurrentStep('type')} className="hidden btn-base rounded-full bg-gradient-to-r from-[#FF9633] to-[#F57600] text-white transition-all hover:from-[#F57600] hover:to-[#DE4F02] hover:-translate-y-0.5 hover:shadow-md md:inline-flex shadow-sm">
                     Start Ordering
                 </Link>
 
                 {isAuthenticated ? (
                     <>
-                        <button onClick={() => setAvatarOpen(!avatarOpen)} className="flex items-center gap-3 rounded-full border border-slate-200 bg-white px-3 py-2 text-slate-700 shadow-sm transition hover:border-amber-500 hover:text-amber-700">
-                            <span className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-900 text-white shadow-inner">
+                        <button onClick={() => setAvatarOpen(!avatarOpen)} className="flex items-center gap-3 rounded-full border-2 border-slate-200 bg-white px-3 py-2 text-slate-700 shadow-sm transition-all hover:border-[#FF9633] hover:text-[#DE4F02] hover:-translate-y-0.5">
+                            <span className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-[#FF9633] to-[#F57600] text-white shadow-inner">
                                 <UserAvatarIcon />
                             </span>
-                            <span className="hidden sm:block">{authLabel}</span>
+                            <span className="hidden sm:block font-bold">{authLabel}</span>
                         </button>
 
                         {avatarOpen && (
                             <div className="absolute right-0 top-14 w-56 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-[0_24px_80px_rgba(15,23,42,0.16)]">
-                                <div className="border-b border-slate-100 px-4 py-4">
-                                    <p className="text-xs font-semibold uppercase tracking-[0.28em] text-amber-700">Signed in</p>
-                                    <p className="mt-1 text-sm font-bold text-slate-900">{authLabel} account</p>
-                                    <p className="mt-1 text-xs text-slate-500">Access is ready for this session.</p>
+                                <div className="border-b border-slate-100 px-4 py-4 bg-[#FFE77A]/10">
+                                    <p className="text-xs font-bold uppercase tracking-[0.28em] text-[#DE4F02]">Signed in</p>
+                                    <p className="mt-1 text-sm font-black text-slate-800">{authLabel} account</p>
+                                    <p className="mt-1 text-xs text-slate-500 font-medium">Access is ready for this session.</p>
                                 </div>
-                                <Link to="/track-order" className="block w-full px-4 py-3 text-left text-sm font-semibold text-slate-700 transition hover:bg-amber-50 hover:text-amber-800 md:hidden">Track order</Link>
-                                <Link to="/customer/orders" className="block w-full px-4 py-3 text-left text-sm font-semibold text-slate-700 transition hover:bg-amber-50 hover:text-amber-800 md:hidden">My orders</Link>
-                                <button onClick={handleLogout} className="w-full px-4 py-3 text-left text-sm font-semibold text-slate-700 transition hover:bg-amber-50 hover:text-amber-800">
+                                <Link to="/track-order" className="block w-full px-4 py-3 text-left text-sm font-bold text-slate-700 transition hover:bg-[#FFE77A]/20 hover:text-[#DE4F02] md:hidden">Track order</Link>
+                                <Link to="/customer/orders" className="block w-full px-4 py-3 text-left text-sm font-bold text-slate-700 transition hover:bg-[#FFE77A]/20 hover:text-[#DE4F02] md:hidden">My orders</Link>
+                                <button onClick={handleLogout} className="w-full px-4 py-3 text-left text-sm font-bold text-slate-700 transition hover:bg-[#FFE77A]/20 hover:text-[#DE4F02]">
                                     Log out
                                 </button>
                             </div>
@@ -89,13 +92,14 @@ export default function Header({ pageTitle = 'Dashboard' }) {
                     </>
                 ) : (
                     <>
-                        <Link to="/track-order" className="btn-base border border-amber-300 bg-amber-50 text-amber-800 transition hover:border-amber-500 hover:bg-amber-100 md:hidden">Track</Link>
-                        <Link to="/customer/order" className="btn-base bg-orange-500 text-white transition hover:bg-orange-600 md:hidden">Order</Link>
-                        <Link to="/login" className="hidden btn-base border border-slate-200 bg-white text-slate-700 transition hover:border-amber-500 hover:text-amber-700 sm:inline-flex">Login</Link>
-                        <Link to="/register" className="hidden btn-base bg-slate-900 text-white transition hover:bg-amber-700 sm:inline-flex">Register</Link>
+                        <Link to="/track-order" className="btn-base rounded-full border-2 border-[#FFE77A] bg-[#FFE77A]/20 text-[#DE4F02] transition hover:border-[#F57600] hover:bg-[#FFE77A]/50 md:hidden">Track</Link>
+                        <Link to="/customer/order" onClick={() => setCurrentStep('type')} className="btn-base rounded-full bg-gradient-to-r from-[#FF9633] to-[#F57600] text-white transition hover:from-[#F57600] hover:to-[#DE4F02] md:hidden">Order</Link>
+                        <Link to="/login" className="hidden btn-base rounded-full border-2 border-slate-200 bg-white text-slate-700 transition hover:border-[#FF9633] hover:text-[#DE4F02] hover:-translate-y-0.5 sm:inline-flex">Login</Link>
+                        <Link to="/register" className="hidden btn-base rounded-full bg-gradient-to-r from-[#FF9633] to-[#F57600] text-white transition hover:from-[#F57600] hover:to-[#DE4F02] hover:-translate-y-0.5 hover:shadow-md sm:inline-flex">Register</Link>
                     </>
                 )}
             </div>
         </header>
+        </div>
     );
 }

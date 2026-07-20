@@ -34,6 +34,7 @@ export default function DashboardDesigner({ initialTab = 'slideshow' }) {
   const [fullStories, setFullStories] = useState([]);
   const [fullStoryForm, setFullStoryForm] = useState({ title: '', description: '', layout: 'background', image_file: null, image_preview: '' });
 
+
   const token = localStorage.getItem('accessToken');
 
   // Load all dashboard configuration on mount
@@ -54,7 +55,7 @@ export default function DashboardDesigner({ initialTab = 'slideshow' }) {
   const loadAllConfig = async () => {
     try {
       setLoading(true);
-      const [slideshowRes, featuredRes, storyRes, fullStoryRes] = await Promise.all([
+      const [slideshowRes, featuredRes, storyRes, fullStoryRes, paymentRes] = await Promise.all([
         axios.get(`${API_BASE}/api/dashboard/slideshow`, {
           headers: { Authorization: `Bearer ${token}` }
         }),
@@ -748,6 +749,7 @@ export default function DashboardDesigner({ initialTab = 'slideshow' }) {
               </div>
             </div>
           )}
+
         </div>
       </div>
     </div>

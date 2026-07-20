@@ -101,6 +101,7 @@ CREATE TABLE IF NOT EXISTS order_items (
     menu_item_id INT NOT NULL,
     quantity INT NOT NULL DEFAULT 1,
     price DECIMAL(10, 2) NOT NULL,
+    remarks VARCHAR(255) DEFAULT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
     FOREIGN KEY (menu_item_id) REFERENCES menu_items(id)
@@ -139,7 +140,18 @@ ALTER TABLE orders
     ADD COLUMN table_number VARCHAR(50) AFTER branch_id,
     ADD COLUMN dine_in_time VARCHAR(50) DEFAULT NULL AFTER table_number,
     ADD COLUMN dine_in_pax INT DEFAULT NULL AFTER dine_in_time,
+    ADD COLUMN payment_method ENUM('gateway', 'qr_code', 'cash') DEFAULT 'cash' AFTER dine_in_pax,
+    ADD COLUMN payment_status ENUM('pending', 'paid', 'failed', 'pending_verification') DEFAULT 'pending' AFTER payment_method,
+    ADD COLUMN payment_receipt_url VARCHAR(255) DEFAULT NULL AFTER payment_status,
     ADD COLUMN updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP;
+
+-- Payment Settings Table
+CREATE TABLE IF NOT EXISTS payment_settings (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    qr_code_url VARCHAR(255) DEFAULT NULL,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+INSERT IGNORE INTO payment_settings (id, qr_code_url) VALUES (1, NULL);
 
 -- Backfill orders data from the existing columns
 UPDATE orders
@@ -171,6 +183,9 @@ WHERE oi.menu_item_id IS NULL;
 
 -- If every row was matched successfully, you can later add a foreign key and optionally drop menu_item_name.
 -- Keep menu_item_name for now so old data remains readable.
+
+ALTER TABLE order_items
+    ADD COLUMN remarks VARCHAR(255) DEFAULT NULL AFTER price;
 
 -- Optional future cleanup once verified:
 -- ALTER TABLE orders DROP COLUMN phone;

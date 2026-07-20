@@ -264,7 +264,14 @@ export default function OrderTracking() {
                                 <ul className="mt-3 space-y-3">
                                     {order.items.map((item) => (
                                         <li key={item.id} className="flex items-start justify-between gap-4 text-sm text-slate-600">
-                                            <span>{item.quantity} × {item.name}</span>
+                                            <div className="flex flex-col">
+                                                <span>{item.quantity} × {item.name}</span>
+                                                {item.remarks && (
+                                                    <span className="text-xs font-medium text-slate-500 mt-0.5 ml-4 border-l-2 border-slate-200 pl-2">
+                                                        Notes: {item.remarks}
+                                                    </span>
+                                                )}
+                                            </div>
                                             <span className="font-semibold text-slate-900">KD {(Number(item.price) * item.quantity).toFixed(2)}</span>
                                         </li>
                                     ))}

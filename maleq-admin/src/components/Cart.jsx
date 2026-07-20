@@ -23,10 +23,15 @@ export default function Cart() {
             {/* Cart Items */}
             <div className="rounded-2xl border border-slate-200 divide-y divide-slate-100 max-h-80 overflow-y-auto">
                 {cart.map(item => (
-                    <div key={item.id} className="p-4 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 hover:bg-amber-50/50 transition">
+                    <div key={item.cartItemId} className="p-4 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 hover:bg-amber-50/50 transition">
                         <div className="flex-1">
                             <h4 className="font-bold text-sm text-slate-900">{item.name}</h4>
-                            <p className="text-xs text-slate-500 mt-0.5">
+                            {item.remarks && (
+                                <p className="text-xs font-medium text-slate-600 bg-slate-100 px-2 py-0.5 rounded w-fit mt-1">
+                                    Notes: {item.remarks}
+                                </p>
+                            )}
+                            <p className="text-xs text-slate-500 mt-1">
                                 KD {parseFloat(item.price).toFixed(3)} × {item.quantity}
                             </p>
                         </div>
@@ -35,7 +40,7 @@ export default function Cart() {
                             {/* Quantity Controls */}
                             <div className="flex items-center rounded-full border border-slate-200 bg-white shadow-sm overflow-hidden">
                                 <button
-                                    onClick={() => updateCartQuantity(item.id, item.quantity - 1)}
+                                    onClick={() => updateCartQuantity(item.cartItemId, item.quantity - 1)}
                                     className="px-3 py-1 font-bold text-slate-600 hover:bg-slate-100 hover:text-orange-500 transition"
                                 >
                                     −
@@ -44,7 +49,7 @@ export default function Cart() {
                                     {item.quantity}
                                 </span>
                                 <button
-                                    onClick={() => updateCartQuantity(item.id, item.quantity + 1)}
+                                    onClick={() => updateCartQuantity(item.cartItemId, item.quantity + 1)}
                                     className="px-3 py-1 font-bold text-slate-600 hover:bg-slate-100 hover:text-orange-500 transition"
                                 >
                                     +
@@ -60,7 +65,7 @@ export default function Cart() {
 
                             {/* Remove Button */}
                             <button
-                                onClick={() => removeFromCart(item.id)}
+                                onClick={() => removeFromCart(item.cartItemId)}
                                 className="text-slate-400 hover:text-red-500 transition p-1"
                             >
                                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

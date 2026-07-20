@@ -31,11 +31,12 @@ This workspace contains:
 	- Listens on `process.env.PORT || 5000`
 
 
-		### Session Defaults
+		### Session Defaults & Automation
 		- `backend/utils/deliverySessions.js`
 			- Defines daily delivery templates for morning `11:30-13:00` and evening `14:00-16:00`
 			- Auto-ensures sessions exist for the current date before customer/admin session reads
 			- Supports admin editing of the default daily session templates
+			- **Automated Cleanup**: Includes a background job that automatically runs every 24 hours to delete delivery sessions older than a day. Safely unlinks older sessions from `orders` (sets `delivery_session_id = NULL`) to ensure historical order data is preserved.
 ### Database
 - `config/db.js`
 	- Creates MySQL pool using env vars: `DB_HOST`, `DB_USER`, `DB_PASSWORD`, `DB_NAME`
@@ -88,6 +89,7 @@ This workspace contains:
 #### Orders
 - `POST /api/orders/create` (role: `customer`, any authenticated user)
 	- Body: `{ orderType, customerName, customerPhone, customerEmail, items[], deliverySessionId?, deliveryAddress?, branchId?, tableNumber? }`
+	- Note: `items` array expects objects like `{ menu_item_id, quantity, remarks }`.
 	- Creates new order for delivery/pickup/dine-in
 	- Supports three order types: `delivery`, `pickup`, `dine_in`
 	- Automatically assigns a specialized sequential `order_number` (e.g., `D001`, `P001`, `A001`) that loops from 001 to 999.
@@ -105,6 +107,18 @@ This workspace contains:
 	- Returns all restaurant branches
 - `GET /api/orders/delivery-sessions` (public)
 	- Returns available delivery sessions
+
+#### Payments
+- `GET /api/payment/settings`, `PUT /api/payment/settings` (admin)
+	- Fetch and update QR Pay image for customers.
+- `GET /api/payment/orders/pending-verifications` (admin)
+	- Returns orders waiting for receipt verification (`payment_status = 'pending_verification'`).
+- `GET /api/payment/orders/logs` (admin)
+	- Returns recent completed/failed payment logs.
+- `POST /api/payment/orders/:orderId/receipt` (authenticated)
+	- Allows customers to upload a payment receipt and updates status to `pending_verification`.
+- `PUT /api/payment/orders/:orderId/verify-payment` (admin)
+	- Verifies the uploaded receipt, marks order as `paid`, and updates general order status to `confirmed`.
 
 #### Dashboard (New)
 - `GET /api/dashboard/config` (public)
@@ -148,7 +162,7 @@ This workspace contains:
 
 ### Routing and Pages
 - `src/App.jsx` routes:
-	- `/` -> redirect to `/customer/dashboard`
+	- `/` -> redirect to `/customer/order` (Updated to display ordering popup immediately upon visit)
 	- `/login` -> `Login`
 	- `/register` -> customer registration
 	- `/superadmin/dashboard` -> `SuperAdminDashboard`
@@ -174,10 +188,16 @@ This workspace contains:
 	- Standalone public page displaying multiple company story sections.
 	- Wrapped with the global `Header` but uses a custom edge-to-edge layout for an immersive full-screen background image and alternating side-image experience.
 - `OrderingSystem.jsx` (NEW)
-	- Authenticates user before showing ordering
-	- Shows `OrderTypeModal` to choose Delivery/Pickup/Dine In
-	- Routes to appropriate flow (`DeliveryFlow`, `PickupFlow`, `DineInFlow`) using the new Card System and pill buttons.
-	- Manages checkout process
+	- Now renders as an immersive popup modal overlaid on a blurred `CustomerDashboard`, avoiding a hard page transition.
+	- Authenticates user before showing ordering.
+	- Shows `OrderTypeModal` to choose Delivery/Pickup/Dine In (now styled with playful glassmorphism).
+	- Routes to appropriate flow (`DeliveryFlow`, `PickupFlow`, `DineInFlow`) using the new Card System and fully rounded pill buttons.
+	- Includes a close ("X") button to gracefully dismiss the modal and reveal the full clean dashboard.
+	- Manages checkout process.
+- `MenuSelector.jsx` (NEW)
+	- Features a custom Remarks Modal when adding items, allowing users to specify special requests (e.g., "no onions").
+- `Cart.jsx` (NEW)
+	- Order summary sidebar that separates identical items based on distinct remarks.
 - `DeliveryFlow.jsx` (NEW)
 	- Select morning (11:30-13:00) or evening (14:00-16:00) delivery session
 	- Each session limited to 8 orders (automatic capacity tracking)
@@ -188,6 +208,8 @@ This workspace contains:
 	- View map with branch location
 	- Select menu items
 - `DineInFlow.jsx` (NEW)
+	- Select arrival time (Standard 1-hour intervals or Special Booking hours before 10 AM / after 4 PM)
+	- Select number of guests (pax)
 	- Enter table number
 	- Select menu items
 - `Checkout.jsx` (NEW)
@@ -218,9 +240,12 @@ This workspace contains:
 	- Calls `GET /api/admin/dashboard` with the new gradient and `card-elevated` layouts.
 	- Includes logout and link to invite page
 	- Contains the `OrderManagement` tab for live order tracking, displaying specialized order numbers, and the `DashboardDesigner` tab for layout configuration.
+	- Includes a `PaymentManagement` tab for handling QR pay settings and manual payment verifications.
+- `PaymentManagement.jsx` (NEW)
+	- Dedicated dashboard for administrators to upload active QR codes, review uploaded customer receipts, and verify pending orders. Includes a completed payment log.
 - `DashboardDesigner.jsx` (NEW)
 	- Admin interface for customizing the pre-configured customer dashboard layout.
-	- Includes tabs for Slideshow, Home Page Story (with layout toggles), and Full Story Page sections (Featured Items tab removed).
+	- Includes tabs for Slideshow, Home Page Story (with layout toggles), and Full Story Page sections (Featured Items and Payment tabs removed).
 - `InviteAdmin.jsx`
 	- Calls `POST /api/admin/invite`
 
@@ -267,10 +292,11 @@ Current frontend/backend contracts are largely aligned for:
 - Admin creation/invite payloads: `{ email, password }`
 
 Recently aligned:
+- Item Remarks: The `order_items` schema now includes a `remarks` column. `createOrder` accepts it, and all item-fetching queries return it. The frontend `OrderContext` separates identical items based on different remarks.
 - Order Representation: Backend now supplies `order_number` (e.g. `P001`) for display purposes instead of the database `id`. Frontend components have been updated to render `{order.order_number}` across all views.
 
 Alignment status:
-- Customer dashboard is the default landing page, so `/` now routes there instead of `/login`.
+- Customer dashboard is the primary visual backdrop. `/` now routes to `/customer/order` to instantly display the ordering popup over the dashboard. Closing the popup reveals the underlying dashboard content (`/customer/dashboard`).
 - Order recovery uses a hybrid approach: authenticated users automatically see their account and phone-linked orders, while public tracking strictly relies on phone-based lookups.
 
 ## Risks and Gaps (Current)
@@ -278,9 +304,8 @@ Alignment status:
 1. Secrets handling risk
 - `backend/keyes.env` exists in workspace and currently includes live credentials/secrets.
 
-2. Payment implementation
-- Ordering system created but payment processing deferred to future implementation
-- No payment status tracking yet in orders table
+2. Payment implementation (Resolved - Basic Phase)
+- Billplz/QR-based payment module is implemented. Customers can upload receipts for manual verification. `payment_status` and `payment_method` exist in the `orders` table. Full automated gateway integration (Stripe, Billplz automatic webhook) can be added as a future enhancement.
 
 3. Order status tracking (Resolved)
 - Orders created now successfully flow through a status pipeline (pending → preparing → ready → completed).
@@ -314,12 +339,10 @@ Alignment status:
 - Keep the phone number captured at checkout as the primary recovery key
 - Consider pre-filling the customer orders page from the last used phone number after login
 
-2. Payment Implementation
-- Integrate payment gateway (Stripe, PayPal, local payment options)
-- Add payment processing before order confirmation
-- Update orders table with `payment_status` and `payment_method` fields
+3. Advanced Gateway Integration
+- Optionally integrate an automated payment gateway (e.g., Stripe or Billplz automatic redirects/webhooks) for fully automated payment processing instead of manual receipt verification.
 
-3. Order Management (Partial)
+4. Order Management (Partial)
 - Status tracking and the admin board are complete. Next step: Add real-time order notifications to instantly update the UI.
 
 4. Security and config

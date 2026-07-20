@@ -130,6 +130,30 @@ async function ensureOrderTables() {
     if (trackingIndex.length === 0) {
         await pool.query('CREATE UNIQUE INDEX idx_order_tracking_token ON orders(tracking_token)');
     }
+
+    if (!(await tableHasColumn('orders', 'payment_method'))) {
+        await pool.query("ALTER TABLE orders ADD COLUMN payment_method ENUM('gateway', 'qr_code', 'cash') DEFAULT 'cash' AFTER dine_in_pax");
+    }
+
+    if (!(await tableHasColumn('orders', 'payment_status'))) {
+        await pool.query("ALTER TABLE orders ADD COLUMN payment_status ENUM('pending', 'paid', 'failed', 'pending_verification') DEFAULT 'pending' AFTER payment_method");
+    }
+
+    if (!(await tableHasColumn('orders', 'payment_receipt_url'))) {
+        await pool.query("ALTER TABLE orders ADD COLUMN payment_receipt_url VARCHAR(255) DEFAULT NULL AFTER payment_status");
+    }
+
+    await pool.query(`
+        CREATE TABLE IF NOT EXISTS payment_settings (
+            id INT PRIMARY KEY AUTO_INCREMENT,
+            qr_code_url VARCHAR(255) DEFAULT NULL,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+        )
+    `);
+
+    await pool.query(`
+        INSERT IGNORE INTO payment_settings (id, qr_code_url) VALUES (1, NULL)
+    `);
 }
 
 module.exports = pool;

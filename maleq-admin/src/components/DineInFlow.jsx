@@ -12,6 +12,16 @@ const TIME_SLOTS = [
     '4:00 PM'
 ];
 
+const SPECIAL_TIME_SLOTS = [
+    '8:00 AM',
+    '9:00 AM',
+    '5:00 PM',
+    '6:00 PM',
+    '7:00 PM',
+    '8:00 PM',
+    '9:00 PM'
+];
+
 const GUEST_COUNTS = [1, 2, 3, 4, 5, 6, 7, 8, 9, '10+'];
 
 export default function DineInFlow() {
@@ -87,6 +97,33 @@ export default function DineInFlow() {
                                             isSelected
                                                 ? 'bg-orange-500 text-white border-orange-500 shadow-sm'
                                                 : 'border-slate-200 bg-white text-slate-700 hover:border-orange-500 hover:text-orange-600'
+                                        }`}
+                                    >
+                                        {time}
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </div>
+
+                    {/* Special Booking Time Selection */}
+                    <div className="space-y-3 pt-2">
+                        <label className="label text-amber-700">Special Booking Hours (Before 10:00 AM & After 4:00 PM) *</label>
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                            {SPECIAL_TIME_SLOTS.map((time) => {
+                                const isSelected = dineInTime === time;
+                                return (
+                                    <button
+                                        key={time}
+                                        type="button"
+                                        onClick={() => {
+                                            setDineInTime(time);
+                                            setError('');
+                                        }}
+                                        className={`px-4 py-3 rounded-2xl text-sm font-bold border transition ${
+                                            isSelected
+                                                ? 'bg-amber-600 text-white border-amber-600 shadow-sm'
+                                                : 'border-amber-200 bg-amber-50 text-amber-800 hover:border-amber-500 hover:text-amber-700'
                                         }`}
                                     >
                                         {time}

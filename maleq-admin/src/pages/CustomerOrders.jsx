@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useContext } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Layout from '../components/Layout';
+import { OrderContext } from '../context/OrderContext';
 
 const ORDER_STATUS_STYLES = {
     pending: 'bg-amber-100 text-amber-800 border border-amber-200',
@@ -19,6 +20,7 @@ export default function CustomerOrders() {
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
+    const { setCurrentStep } = useContext(OrderContext);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -100,7 +102,7 @@ export default function CustomerOrders() {
                     </div>
                     <p className="text-sm font-semibold text-slate-900">Nothing here yet</p>
                     <p className="mt-1 text-sm text-slate-500">You have no previous orders.</p>
-                    <Link to="/customer/order" className="mt-4 btn-base bg-orange-500 text-white hover:bg-orange-600">
+                    <Link to="/customer/order" onClick={() => setCurrentStep('type')} className="mt-4 btn-base bg-orange-500 text-white hover:bg-orange-600">
                         Start Ordering
                     </Link>
                 </div>
@@ -114,6 +116,7 @@ export default function CustomerOrders() {
                                 <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Status</th>
                                 <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Date</th>
                                 <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Total</th>
+                                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Payment</th>
                                 <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Track</th>
                             </tr>
                         </thead>
@@ -129,6 +132,19 @@ export default function CustomerOrders() {
                                     </td>
                                     <td className="px-4 py-4 text-sm text-slate-700">{formatDate(order.created_at)}</td>
                                     <td className="px-4 py-4 text-sm font-bold text-slate-900">KD {Number(order.total).toFixed(2)}</td>
+                                    <td className="px-4 py-4 text-sm">
+                                        <div className="flex flex-col gap-1 items-start">
+                                            <span className="font-bold capitalize text-slate-900">{order.payment_method ? order.payment_method.replace('_', ' ') : 'Cash'}</span>
+                                            <span className={`inline-flex rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest ${
+                                                order.payment_status === 'paid' ? 'bg-green-100 text-green-800' :
+                                                order.payment_status === 'pending_verification' ? 'bg-amber-100 text-amber-800' :
+                                                order.payment_status === 'failed' ? 'bg-red-100 text-red-800' :
+                                                'bg-slate-100 text-slate-700'
+                                            }`}>
+                                                {(order.payment_status || 'Pending').replace('_', ' ')}
+                                            </span>
+                                        </div>
+                                    </td>
                                     <td className="px-4 py-4 text-sm text-slate-700">
                                         <Link
                                             to={order.tracking_token ? `/track-order/${order.tracking_token}` : '/track-order'}

@@ -48,7 +48,7 @@ function Slideshow({ images, editable = false, initialMode = 'fill', onModeChang
               alt={image.alt_text}
               className={`h-full w-full ${imageMode === 'fit' ? 'object-contain' : 'object-cover'}`}
             />
-            <div className="absolute inset-0 bg-black/20" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-black/10 to-transparent pointer-events-none" />
           </div>
         ))}
 
@@ -87,8 +87,8 @@ function Slideshow({ images, editable = false, initialMode = 'fill', onModeChang
               <button
                 key={index}
                 onClick={() => setCurrentIndex(index)}
-                className={`h-2 w-2 rounded-full transition ${
-                  index === currentIndex ? 'bg-white' : 'bg-white/50'
+                className={`h-2.5 rounded-full transition-all duration-300 ${
+                  index === currentIndex ? 'w-8 bg-[#FEEC48] shadow-[0_0_8px_rgba(254,236,72,0.6)]' : 'w-2.5 bg-white/60 hover:bg-white/80'
                 }`}
                 aria-label={`Go to slide ${index + 1}`}
               />
@@ -112,30 +112,36 @@ function OrderMethodSelector() {
   };
 
   return (
-    <section className="py-16 lg:py-24 w-full px-4 sm:px-6 lg:px-10 max-w-[1400px] mx-auto text-center animate-fade-in-up stagger-2">
-      <div className="flex flex-col items-center justify-center mb-12 w-full">
-        <p className="text-xs font-semibold uppercase tracking-[0.35em] text-amber-600 mb-2">Order Online</p>
-        <h2 className="text-3xl md:text-5xl font-black text-slate-900 tracking-tight">How would you like to order today?</h2>
-        <div className="w-24 h-1 bg-amber-500 mx-auto rounded-full mt-4"></div>
+    <section className="py-20 lg:py-32 w-full px-4 sm:px-6 lg:px-10 max-w-[1400px] mx-auto text-center animate-fade-in-up stagger-2 relative">
+      {/* Decorative background blurs for bright airy feel */}
+      <div className="absolute top-0 left-0 w-96 h-96 bg-[#FFE77A]/20 rounded-full blur-3xl -z-10 pointer-events-none"></div>
+      <div className="absolute bottom-0 right-0 w-96 h-96 bg-[#FF9633]/10 rounded-full blur-3xl -z-10 pointer-events-none"></div>
+
+      <div className="flex flex-col items-center justify-center mb-16 w-full relative z-10">
+        <p className="text-sm font-bold uppercase tracking-[0.4em] text-[#DE4F02] mb-3">Order Online</p>
+        <h2 className="text-4xl md:text-5xl lg:text-6xl font-black text-slate-800 tracking-tight drop-shadow-sm">Choose Your Experience</h2>
+        <div className="w-24 h-1.5 bg-gradient-to-r from-[#FEEC48] via-[#FF9633] to-[#F57600] mx-auto rounded-full mt-6 shadow-sm"></div>
       </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto px-2">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto px-2 relative z-10">
         {/* Delivery Card */}
         <button
           onClick={() => handleSelectType('delivery')}
-          className="flex flex-col items-center justify-between p-8 rounded-3xl border-2 border-slate-100 bg-white transition-all duration-300 hover:border-orange-500 hover:shadow-[0_24px_50px_rgba(249,115,22,0.12)] hover:-translate-y-1 text-center group h-full"
+          className="relative flex flex-col items-center justify-between p-8 md:p-10 rounded-[2rem] bg-white/70 backdrop-blur-xl border border-white shadow-[0_8px_32px_rgba(245,118,0,0.06)] transition-all duration-500 hover:shadow-[0_24px_64px_rgba(245,118,0,0.15)] hover:-translate-y-2 hover:border-[#F57600]/20 text-center group h-full overflow-hidden"
         >
-          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-orange-50 text-orange-500 group-hover:bg-orange-500 group-hover:text-white transition-all duration-300 mb-6 shrink-0 shadow-sm">
-            <span className="text-3xl">🚚</span>
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-48 h-48 bg-[#F57600]/10 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none"></div>
+          
+          <div className="relative z-10 flex h-20 w-20 items-center justify-center rounded-3xl bg-gradient-to-br from-[#FFE77A] to-[#FEEC48] text-[#DE4F02] group-hover:from-[#F57600] group-hover:to-[#DE4F02] group-hover:text-white transition-all duration-500 mb-8 shadow-sm group-hover:shadow-lg group-hover:scale-110">
+            <span className="text-4xl drop-shadow-sm">🚚</span>
           </div>
-          <div className="flex flex-col h-full justify-between items-center w-full">
-            <div className="mb-6">
-              <h3 className="text-2xl font-black text-slate-900 mb-2">Delivery</h3>
-              <p className="text-sm font-medium text-slate-500 leading-relaxed">
+          <div className="relative z-10 flex flex-col h-full justify-between items-center w-full">
+            <div className="mb-8">
+              <h3 className="text-2xl font-black text-slate-800 mb-3 group-hover:text-[#DE4F02] transition-colors duration-300">Delivery</h3>
+              <p className="text-base font-medium text-slate-500 leading-relaxed group-hover:text-slate-600 transition-colors duration-300">
                 Get hot, fresh meals delivered straight to your doorstep. Fast and reliable service.
               </p>
             </div>
-            <span className="btn-base bg-orange-500 text-white hover:bg-orange-600 w-full group-hover:bg-orange-600 transition-colors duration-300 py-3 font-bold rounded-2xl shadow-sm text-center">
+            <span className="btn-base bg-white text-[#F57600] border-2 border-[#FFE77A]/50 group-hover:bg-gradient-to-r group-hover:from-[#F57600] group-hover:to-[#DE4F02] group-hover:border-transparent group-hover:text-white w-full transition-all duration-500 py-4 text-base font-bold rounded-full shadow-sm text-center transform group-hover:scale-105">
               Select Delivery
             </span>
           </div>
@@ -144,19 +150,21 @@ function OrderMethodSelector() {
         {/* Pickup Card */}
         <button
           onClick={() => handleSelectType('pickup')}
-          className="flex flex-col items-center justify-between p-8 rounded-3xl border-2 border-slate-100 bg-white transition-all duration-300 hover:border-amber-500 hover:shadow-[0_24px_50px_rgba(245,158,11,0.12)] hover:-translate-y-1 text-center group h-full"
+          className="relative flex flex-col items-center justify-between p-8 md:p-10 rounded-[2rem] bg-white/70 backdrop-blur-xl border border-white shadow-[0_8px_32px_rgba(245,118,0,0.06)] transition-all duration-500 hover:shadow-[0_24px_64px_rgba(245,118,0,0.15)] hover:-translate-y-2 hover:border-[#F57600]/20 text-center group h-full overflow-hidden"
         >
-          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-amber-50 text-amber-600 group-hover:bg-amber-500 group-hover:text-white transition-all duration-300 mb-6 shrink-0 shadow-sm">
-            <span className="text-3xl">🏪</span>
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-48 h-48 bg-[#FF9633]/15 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none"></div>
+          
+          <div className="relative z-10 flex h-20 w-20 items-center justify-center rounded-3xl bg-gradient-to-br from-[#FFE77A] to-[#FEEC48] text-[#DE4F02] group-hover:from-[#FF9633] group-hover:to-[#F57600] group-hover:text-white transition-all duration-500 mb-8 shadow-sm group-hover:shadow-lg group-hover:scale-110">
+            <span className="text-4xl drop-shadow-sm">🏪</span>
           </div>
-          <div className="flex flex-col h-full justify-between items-center w-full">
-            <div className="mb-6">
-              <h3 className="text-2xl font-black text-slate-900 mb-2">Pickup</h3>
-              <p className="text-sm font-medium text-slate-500 leading-relaxed">
+          <div className="relative z-10 flex flex-col h-full justify-between items-center w-full">
+            <div className="mb-8">
+              <h3 className="text-2xl font-black text-slate-800 mb-3 group-hover:text-[#F57600] transition-colors duration-300">Pickup</h3>
+              <p className="text-base font-medium text-slate-500 leading-relaxed group-hover:text-slate-600 transition-colors duration-300">
                 Skip the line. Order ahead and pick up your meal at your nearest branch location.
               </p>
             </div>
-            <span className="btn-base bg-amber-500 text-white hover:bg-amber-600 w-full group-hover:bg-amber-600 transition-colors duration-300 py-3 font-bold rounded-2xl shadow-sm text-center">
+            <span className="btn-base bg-white text-[#F57600] border-2 border-[#FFE77A]/50 group-hover:bg-gradient-to-r group-hover:from-[#FF9633] group-hover:to-[#F57600] group-hover:border-transparent group-hover:text-white w-full transition-all duration-500 py-4 text-base font-bold rounded-full shadow-sm text-center transform group-hover:scale-105">
               Select Pickup
             </span>
           </div>
@@ -165,19 +173,21 @@ function OrderMethodSelector() {
         {/* Dine In Card */}
         <button
           onClick={() => handleSelectType('dine_in')}
-          className="flex flex-col items-center justify-between p-8 rounded-3xl border-2 border-slate-100 bg-white transition-all duration-300 hover:border-orange-500 hover:shadow-[0_24px_50px_rgba(249,115,22,0.12)] hover:-translate-y-1 text-center group h-full"
+          className="relative flex flex-col items-center justify-between p-8 md:p-10 rounded-[2rem] bg-white/70 backdrop-blur-xl border border-white shadow-[0_8px_32px_rgba(245,118,0,0.06)] transition-all duration-500 hover:shadow-[0_24px_64px_rgba(245,118,0,0.15)] hover:-translate-y-2 hover:border-[#DE4F02]/20 text-center group h-full overflow-hidden"
         >
-          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-orange-50 text-orange-500 group-hover:bg-orange-500 group-hover:text-white transition-all duration-300 mb-6 shrink-0 shadow-sm">
-            <span className="text-3xl">🍽️</span>
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-48 h-48 bg-[#DE4F02]/10 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none"></div>
+          
+          <div className="relative z-10 flex h-20 w-20 items-center justify-center rounded-3xl bg-gradient-to-br from-[#FFE77A] to-[#FEEC48] text-[#DE4F02] group-hover:from-[#F57600] group-hover:to-[#DE4F02] group-hover:text-white transition-all duration-500 mb-8 shadow-sm group-hover:shadow-lg group-hover:scale-110">
+            <span className="text-4xl drop-shadow-sm">🍽️</span>
           </div>
-          <div className="flex flex-col h-full justify-between items-center w-full">
-            <div className="mb-6">
-              <h3 className="text-2xl font-black text-slate-900 mb-2">Dine In</h3>
-              <p className="text-sm font-medium text-slate-500 leading-relaxed">
+          <div className="relative z-10 flex flex-col h-full justify-between items-center w-full">
+            <div className="mb-8">
+              <h3 className="text-2xl font-black text-slate-800 mb-3 group-hover:text-[#DE4F02] transition-colors duration-300">Dine In</h3>
+              <p className="text-base font-medium text-slate-500 leading-relaxed group-hover:text-slate-600 transition-colors duration-300">
                 Reserve your table and order from your table inside our restaurant for fine dining.
               </p>
             </div>
-            <span className="btn-base bg-orange-500 text-white hover:bg-orange-600 w-full group-hover:bg-orange-600 transition-colors duration-300 py-3 font-bold rounded-2xl shadow-sm text-center">
+            <span className="btn-base bg-white text-[#DE4F02] border-2 border-[#FFE77A]/50 group-hover:bg-gradient-to-r group-hover:from-[#F57600] group-hover:to-[#DE4F02] group-hover:border-transparent group-hover:text-white w-full transition-all duration-500 py-4 text-base font-bold rounded-full shadow-sm text-center transform group-hover:scale-105">
               Select Dine In
             </span>
           </div>
@@ -193,12 +203,12 @@ function CompanyStory({ story, onEdit }) {
 
   if (story?.layout === 'side') {
     return (
-      <section className="relative flex flex-col lg:flex-row w-full bg-white text-slate-900 overflow-hidden border-y border-slate-200 group">
+      <section className="relative flex flex-col lg:flex-row w-full bg-white text-slate-900 overflow-hidden border-y border-slate-100 group">
         {onEdit && (
           <div className="absolute right-6 top-6 z-20">
             <button
               onClick={onEdit}
-              className="btn-base border border-amber-300 bg-amber-50 text-amber-800 transition hover:border-amber-500 hover:bg-amber-100"
+              className="btn-base border border-[#F57600]/30 bg-white/80 backdrop-blur text-[#DE4F02] transition hover:border-[#F57600] hover:bg-[#FFE77A]/50"
             >
               ✏️ Edit
             </button>
@@ -216,15 +226,16 @@ function CompanyStory({ story, onEdit }) {
         </div>
 
         <div className={`flex w-full flex-col justify-center p-8 sm:p-12 lg:p-20 ${story.image_url ? 'lg:w-1/2 items-start text-left' : 'items-center text-center'}`}>
-          <p className="text-xs font-semibold uppercase tracking-[0.35em] text-amber-700 mb-2">Discover Maleq Cuisine</p>
-          <h2 className="font-display text-3xl md:text-5xl font-black tracking-tight text-slate-900 mb-6">
+          <p className="text-xs font-bold uppercase tracking-[0.4em] text-[#DE4F02] mb-3">Discover Maleq Cuisine</p>
+          <h2 className="font-display text-4xl md:text-5xl lg:text-6xl font-black tracking-tight text-slate-800 mb-6 drop-shadow-sm">
             {story.title || 'Our Story'}
           </h2>
-          <p className="text-lg text-slate-600 leading-relaxed whitespace-pre-line mb-8 font-medium">
+          <div className="w-16 h-1 bg-gradient-to-r from-[#FEEC48] to-[#F57600] mb-8 rounded-full"></div>
+          <p className="text-lg text-slate-500 leading-relaxed whitespace-pre-line mb-10 font-medium">
             {story.description}
           </p>
           <div>
-            <Link to="/customer/story" className="btn-base py-3 px-8 text-base bg-slate-900 text-white hover:bg-amber-700">
+            <Link to="/customer/story" className="btn-base py-4 px-10 text-base font-black bg-white text-[#F57600] border-2 border-[#FFE77A] hover:bg-gradient-to-r hover:from-[#FF9633] hover:to-[#F57600] hover:border-transparent hover:text-white shadow-sm hover:shadow-lg transition-all duration-300 rounded-full hover:-translate-y-1 hover:scale-105 inline-block">
               Read Full Story
             </Link>
           </div>
@@ -260,23 +271,23 @@ function CompanyStory({ story, onEdit }) {
       
       {/* Foreground Content */}
       <div className="relative z-10 max-w-4xl mx-auto text-center space-y-6">
-        <p className="text-xs font-semibold uppercase tracking-[0.35em] text-amber-400">Discover Maleq Cuisine</p>
-        <h2 className="font-display text-4xl md:text-5xl font-black tracking-tight text-white drop-shadow-md">
+        <p className="text-xs font-bold uppercase tracking-[0.4em] text-[#FEEC48]">Discover Maleq Cuisine</p>
+        <h2 className="font-display text-5xl md:text-6xl font-black tracking-tight text-white drop-shadow-lg">
           {story?.title || 'Our Story'}
         </h2>
         
         {/* Decorative underline */}
-        <div className="w-24 h-1 bg-amber-500 mx-auto rounded-full"></div>
+        <div className="w-24 h-1.5 bg-gradient-to-r from-[#FEEC48] via-[#FF9633] to-[#F57600] mx-auto rounded-full shadow-sm"></div>
         
-        <p className="text-lg md:text-xl text-slate-200 leading-relaxed whitespace-pre-line drop-shadow-sm font-medium">
+        <p className="text-lg md:text-xl text-slate-200 leading-relaxed whitespace-pre-line drop-shadow-sm font-medium mt-8">
           {story?.description}
         </p>
 
         {/* Link to the Full Story Page */}
-        <div className="pt-8">
+        <div className="pt-10">
           <Link 
             to="/customer/story" 
-            className="btn-base py-3 px-8 text-base bg-orange-500 text-white hover:bg-orange-600"
+            className="btn-base py-4 px-10 text-base font-black bg-gradient-to-r from-[#FF9633] to-[#F57600] text-white hover:from-[#F57600] hover:to-[#DE4F02] shadow-md hover:shadow-xl transition-all duration-300 rounded-full hover:-translate-y-1 hover:scale-105 inline-block"
           >
             Read Full Story
           </Link>

@@ -145,6 +145,21 @@ export default function OrderManagement() {
         }
     };
 
+    const handleVerifyPayment = async (orderId) => {
+        const confirmed = window.confirm('Verify this payment? This will mark the order as paid.');
+        if (!confirmed) return;
+
+        try {
+            const token = getAuthToken();
+            await axios.put(`http://localhost:5000/api/payment/orders/${orderId}/verify-payment`, {}, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            await loadOrders();
+        } catch (err) {
+            setError(err.response?.data?.message || 'Failed to verify payment');
+        }
+    };
+
     if (loading) {
         return <div className="rounded-3xl border border-slate-200 bg-slate-50 p-6 text-slate-600 animate-pulse">Loading live orders...</div>;
     }
@@ -189,6 +204,7 @@ export default function OrderManagement() {
                                 <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Status</th>
                                 <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Created</th>
                                 <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Total</th>
+                                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Payment</th>
                                 <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Actions</th>
                             </tr>
                         </thead>
@@ -273,6 +289,30 @@ export default function OrderManagement() {
                                         </td>
                                         <td className="px-4 py-4 align-top text-sm text-slate-700">{formatDate(order.created_at)}</td>
                                         <td className="px-4 py-4 align-top text-sm font-bold text-slate-900">KD {Number(order.total).toFixed(2)}</td>
+                                        <td className="px-4 py-4 align-top text-sm">
+                                            <div className="flex flex-col gap-1">
+                                                <span className="font-bold capitalize text-slate-900">{order.payment_method ? order.payment_method.replace('_', ' ') : 'Cash'}</span>
+                                                <span className={`inline-flex w-fit rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest ${
+                                                    order.payment_status === 'paid' ? 'bg-green-100 text-green-800' :
+                                                    order.payment_status === 'pending_verification' ? 'bg-amber-100 text-amber-800' :
+                                                    order.payment_status === 'failed' ? 'bg-red-100 text-red-800' :
+                                                    'bg-slate-100 text-slate-700'
+                                                }`}>
+                                                    {(order.payment_status || 'Pending').replace('_', ' ')}
+                                                </span>
+                                                {order.payment_method === 'qr_code' && order.payment_status === 'pending_verification' && order.payment_receipt_url && (
+                                                    <div className="mt-2 flex flex-col gap-2">
+                                                        <a href={`http://localhost:5000${order.payment_receipt_url}`} target="_blank" rel="noopener noreferrer" className="text-xs font-semibold text-blue-600 hover:underline">View Receipt</a>
+                                                        <button
+                                                            onClick={() => handleVerifyPayment(order.id)}
+                                                            className="rounded-full px-2 py-1 text-[10px] font-bold tracking-wider uppercase bg-green-500 text-white hover:bg-green-600"
+                                                        >
+                                                            Verify
+                                                        </button>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </td>
                                         <td className="px-4 py-4 align-top">
                                             <button
                                                 disabled={deletingOrderId === order.id}
